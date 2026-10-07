@@ -28,7 +28,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full font-semibold",
+        "inline-flex items-center gap-1.5 rounded-none font-mono font-medium border border-[#2E2E33]",
         variants[variant],
         sizes[size],
         className
@@ -37,7 +37,7 @@ export default function Badge({
       {dot && (
         <span
           className={cn(
-            "size-1.5 rounded-full",
+            "size-1.5 rounded-none inline-block",
             variant === "success" && "bg-green-500",
             variant === "warning" && "bg-yellow-500",
             variant === "error" && "bg-red-500",

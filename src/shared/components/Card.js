@@ -18,35 +18,32 @@ export default function Card({
     none: "",
     xs: "p-3",
     sm: "p-4",
-    md: "p-6",
-    lg: "p-8",
+    md: "p-5",
+    lg: "p-6",
   };
 
   return (
     <div
       className={cn(
-        "bg-surface border border-border-subtle",
-        elev ? "rounded-[14px] shadow-[var(--shadow-elev)]" : "rounded-[14px] shadow-[var(--shadow-soft)]",
-        hover && "hover:shadow-[var(--shadow-warm)] hover:border-brand-500/30 transition-all cursor-pointer",
+        "bg-[#0F0F10] border border-[#222226] rounded-none text-[#F5F5F7]",
+        hover && "hover:border-[#C5A880]/50 transition-colors cursor-pointer",
         paddings[padding],
         className
       )}
       {...props}
     >
       {(title || action) && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#222226]">
+          <div className="flex items-center gap-2.5">
             {icon && (
-              <div className="p-2 rounded-[10px] bg-bg text-text-muted">
-                <span className="material-symbols-outlined text-[20px]">{icon}</span>
-              </div>
+              <span className="material-symbols-outlined text-[18px] text-[#C5A880]">{icon}</span>
             )}
             <div>
               {title && (
-                <h3 className="text-text-main font-semibold">{title}</h3>
+                <h3 className="text-sm font-semibold tracking-wide uppercase">{title}</h3>
               )}
               {subtitle && (
-                <p className="text-sm text-text-muted">{subtitle}</p>
+                <p className="text-xs text-[#A1A1A6] mt-0.5">{subtitle}</p>
               )}
             </div>
           </div>
@@ -62,55 +59,13 @@ Card.Section = function CardSection({ children, className, ...props }) {
   return (
     <div
       className={cn(
-        "p-4 rounded-[10px]",
-        "bg-bg border border-border-subtle",
+        "p-3.5 rounded-none",
+        "bg-[#141416] border border-[#222226]",
         className
       )}
       {...props}
     >
       {children}
-    </div>
-  );
-};
-
-Card.Row = function CardRow({ children, className, ...props }) {
-  return (
-    <div
-      className={cn(
-        "p-3 -mx-3 px-3 transition-colors",
-        "border-b border-border-subtle last:border-b-0",
-        "hover:bg-surface-2/50",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-Card.ListItem = function CardListItem({
-  children,
-  actions,
-  className,
-  ...props
-}) {
-  return (
-    <div
-      className={cn(
-        "group flex items-center justify-between p-3 -mx-3 px-3",
-        "border-b border-border-subtle last:border-b-0",
-        "hover:bg-surface-2/50 transition-colors",
-        className
-      )}
-      {...props}
-    >
-      <div className="flex-1 min-w-0">{children}</div>
-      {actions && (
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {actions}
-        </div>
-      )}
     </div>
   );
 };

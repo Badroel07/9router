@@ -55,8 +55,8 @@ export default function Modal({
       <div
         className={cn(
           "relative w-full bg-surface",
-          "border border-border-subtle",
-          "rounded-[14px] shadow-[var(--shadow-elev)]",
+          "border border-border",
+          "rounded-none",
           "fade-in",
           sizes[size],
           className

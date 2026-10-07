@@ -20,15 +20,15 @@ export default function Input({
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       {label && (
-        <label className="text-sm font-medium text-text-main">
+        <label className="text-xs uppercase tracking-wider text-[#A1A1A6]">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-text-muted">
-            <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#68686E]">
+            <span className="material-symbols-outlined text-[18px]">{icon}</span>
           </div>
         )}
         <input
@@ -38,14 +38,13 @@ export default function Input({
           onChange={onChange}
           disabled={disabled}
           className={cn(
-            "w-full py-2.5 px-3 text-sm text-text-main bg-surface-2 rounded-[10px]",
-            "border border-transparent placeholder-text-muted/70",
-            "focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/40",
-            "transition-all duration-150 ease-out disabled:opacity-50 disabled:cursor-not-allowed",
-            // iOS zoom fix
-            "text-[16px] sm:text-sm",
-            icon && "pl-10",
-            error && "ring-1 ring-red-500 focus:ring-2 focus:ring-red-500/40 border-red-500/40",
+            "w-full py-2 px-3 text-xs text-[#F5F5F7] bg-[#141416] rounded-none",
+            "border border-[#222226] placeholder-[#68686E] font-mono",
+            "focus:outline-none focus:border-[#C5A880]",
+            "transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+            "text-[16px] sm:text-xs",
+            icon && "pl-9",
+            error && "border-red-500 focus:border-red-500",
             inputClassName
           )}
           {...props}
@@ -58,7 +57,7 @@ export default function Input({
         </p>
       )}
       {hint && !error && (
-        <p className="text-xs text-text-muted">{hint}</p>
+        <p className="text-xs text-[#68686E]">{hint}</p>
       )}
     </div>
   );

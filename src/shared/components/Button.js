@@ -3,18 +3,18 @@
 import { cn } from "@/shared/utils/cn";
 
 const variants = {
-  primary: "bg-brand-500 hover:bg-brand-600 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
-  secondary: "bg-surface-2 hover:bg-surface-3 text-text-main border border-border disabled:opacity-50",
-  outline: "border border-border text-text-main hover:bg-surface-2 hover:border-brand-500/40",
-  ghost: "text-text-muted hover:bg-surface-2 hover:text-text-main",
-  danger: "bg-red-500 hover:bg-red-600 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
-  success: "bg-green-600 hover:bg-green-700 text-white shadow-sm disabled:bg-surface-3 disabled:text-text-muted",
+  primary: "bg-[#E5C378] hover:bg-[#C5A880] text-[#080808] font-semibold border border-transparent disabled:opacity-50",
+  secondary: "bg-[#141416] hover:bg-[#1C1C1F] text-[#F5F5F7] border border-[#2E2E33] hover:border-[#C5A880] disabled:opacity-50",
+  outline: "bg-transparent border border-[#222226] text-[#F5F5F7] hover:bg-[#141416] hover:border-[#C5A880]",
+  ghost: "bg-transparent text-[#A1A1A6] hover:bg-[#141416] hover:text-[#F5F5F7]",
+  danger: "bg-red-600 hover:bg-red-700 text-white disabled:opacity-50",
+  success: "bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50",
 };
 
 const sizes = {
-  sm: "h-7 px-3 text-xs rounded-[8px]",
-  md: "h-9 px-4 text-sm rounded-[10px]",
-  lg: "h-11 px-6 text-sm rounded-[10px]",
+  sm: "h-7 px-2.5 text-xs rounded-none",
+  md: "h-8.5 px-3.5 text-xs rounded-none",
+  lg: "h-10 px-4 text-sm rounded-none",
 };
 
 export default function Button({
@@ -32,8 +32,8 @@ export default function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 ease-out cursor-pointer",
-        "active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "inline-flex items-center justify-center gap-2 font-medium transition-colors duration-150 cursor-pointer rounded-none",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
         variants[variant],
         sizes[size],
         fullWidth && "w-full",
