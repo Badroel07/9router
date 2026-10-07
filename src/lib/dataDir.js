@@ -2,13 +2,22 @@ import fs from "node:fs";
 import path from "path";
 import os from "os";
 
-const APP_NAME = "9router";
+const APP_NAME = "67router";
+const LEGACY_APP_NAME = "9router";
 
 function defaultDir() {
-  if (process.platform === "win32") {
-    return path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), APP_NAME);
+  const legacyPath = process.platform === "win32"
+    ? path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), LEGACY_APP_NAME)
+    : path.join(os.homedir(), `.${LEGACY_APP_NAME}`);
+
+  const primaryPath = process.platform === "win32"
+    ? path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), APP_NAME)
+    : path.join(os.homedir(), `.${APP_NAME}`);
+
+  if (!fs.existsSync(primaryPath) && fs.existsSync(legacyPath)) {
+    return legacyPath;
   }
-  return path.join(os.homedir(), `.${APP_NAME}`);
+  return primaryPath;
 }
 
 export function getDataDir() {

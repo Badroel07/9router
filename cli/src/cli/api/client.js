@@ -15,14 +15,22 @@ const DEFAULT_CONFIG = {
 
 const CLI_TOKEN_HEADER = "x-9r-cli-token";
 const CLI_TOKEN_SALT = "9r-cli-auth";
-const APP_NAME = "9router";
+const APP_NAME = "67router";
+const LEGACY_APP_NAME = "9router";
 
 function getDataDir() {
   if (process.env.DATA_DIR) return process.env.DATA_DIR;
-  if (process.platform === "win32") {
-    return path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), APP_NAME);
+  const legacyDir = process.platform === "win32"
+    ? path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), LEGACY_APP_NAME)
+    : path.join(os.homedir(), `.${LEGACY_APP_NAME}`);
+  const newDir = process.platform === "win32"
+    ? path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), APP_NAME)
+    : path.join(os.homedir(), `.${APP_NAME}`);
+
+  if (!fs.existsSync(newDir) && fs.existsSync(legacyDir)) {
+    return legacyDir;
   }
-  return path.join(os.homedir(), `.${APP_NAME}`);
+  return newDir;
 }
 
 const MACHINE_ID_FILE = path.join(getDataDir(), "machine-id");
