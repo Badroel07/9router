@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import { Modal, ConfirmModal, Toggle } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useSettingsStore from "@/store/settingsStore";
-
+import KeyAccessControls from "./components/KeyAccessControls";
 export default function APIPageClient({ machineId }) {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -171,6 +171,25 @@ export default function APIPageClient({ machineId }) {
       });
       if (res.ok) setKeys((prev) => prev.map((k) => (k.id === id ? { ...k, isActive } : k)));
     } catch { /* ignore */ }
+  };
+
+  // Save a key's access (restricted flag + allow list).
+  const handleUpdateKeyAccess = async (id, access) => {
+    try {
+      const res = await fetch(`/api/keys/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.key) {
+        setKeys(prev => prev.map(k => k.id === id ? { ...k, access: data.key.access } : k));
+      } else {
+        console.log("Error updating key access:", data.error || res.status);
+      }
+    } catch (error) {
+      console.log("Error updating key access:", error);
+    }
   };
 
   const maskKey = (fullKey) => {
