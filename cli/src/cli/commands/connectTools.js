@@ -145,18 +145,56 @@ const opencode = {
     const file = opencodePath();
     const cfg = readJson(file) || {};
     cfg.provider = cfg.provider || {};
-    const p = cfg.provider["9router"] || { npm: "@ai-sdk/openai-compatible", options: {}, models: {} };
+    delete cfg.provider["9router"];
+    const p = cfg.provider["67router"] || { npm: "@ai-sdk/openai-compatible", name: "67Router", options: {}, models: {} };
     p.options = { ...p.options, baseURL: v1(baseUrl), apiKey };
     p.models = p.models || {};
-    p.models[model] = { name: model, modalities: { input: ["text", "image"], output: ["text"] } };
-    cfg.provider["9router"] = p;
-    cfg.model = `9router/${model}`;
-    cfg.agent = cfg.agent || {};
-    cfg.agent.explorer = {
-      description: "Fast explorer subagent for codebase exploration",
-      mode: "subagent",
-      model: `9router/${model}`,
-    };
+
+    // Fetch all models with full specs from endpoint
+    try {
+      const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
+      const res = await fetch(`${v1(baseUrl)}/models`, { headers });
+      if (res.ok) {
+        const json = await res.json();
+        const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json?.models) ? json.models : []);
+        for (const m of list) {
+          const mId = m.id || m.name;
+          if (!mId) continue;
+          const ctx = m.context_length || m.capabilities?.contextWindow || 128000;
+          const out = m.max_completion_tokens || m.capabilities?.maxOutput || 16384;
+          const hasVision = Boolean(m.capabilities?.vision || (Array.isArray(m.modalities?.input) && m.modalities.input.includes("image")));
+          p.models[mId] = {
+            name: mId,
+            limit: { context: Number(ctx) || 128000, output: Number(out) || 16384 },
+            modalities: { input: hasVision ? ["text", "image"] : ["text"], output: ["text"] },
+          };
+        }
+      }
+    } catch (e) {}
+
+    if (model) {
+      if (!p.models[model]) {
+        p.models[model] = {
+          name: model,
+          limit: { context: 128000, output: 16384 },
+          modalities: { input: ["text", "image"], output: ["text"] },
+        };
+      }
+      cfg.model = `67router/${model}`;
+      cfg.agent = cfg.agent || {};
+      cfg.agent.explorer = {
+        description: "Fast explorer subagent for codebase exploration",
+        mode: "subagent",
+        model: `67router/${model}`,
+      };
+    } else {
+      const firstModel = Object.keys(p.models)[0];
+      if (firstModel) {
+        cfg.model = `67router/${firstModel}`;
+      }
+    }
+
+    cfg.provider["67router"] = p;
     writeJson(file, cfg);
     return [file];
   },
@@ -164,9 +202,12 @@ const opencode = {
     const file = opencodePath();
     const cfg = readJson(file);
     if (!cfg) return [];
-    if (cfg.provider) delete cfg.provider["9router"];
-    if (cfg.model?.startsWith("9router/")) delete cfg.model;
-    if (cfg.agent?.explorer?.model?.startsWith("9router/")) {
+    if (cfg.provider) {
+      delete cfg.provider["67router"];
+      delete cfg.provider["9router"];
+    }
+    if (cfg.model?.startsWith("67router/") || cfg.model?.startsWith("9router/")) delete cfg.model;
+    if (cfg.agent?.explorer?.model?.startsWith("67router/") || cfg.agent?.explorer?.model?.startsWith("9router/")) {
       delete cfg.agent.explorer;
       if (Object.keys(cfg.agent).length === 0) delete cfg.agent;
     }
