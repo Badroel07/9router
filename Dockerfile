@@ -59,7 +59,9 @@ COPY --from=builder /app/open-sse ./open-sse
 # Next file tracing can omit sibling files; MITM runs server.js as a separate process.
 COPY --from=builder /app/src/mitm ./src/mitm
 # Standalone node_modules may omit deps only required by the MITM child process.
-COPY --from=builder /app/node_modules/node-forge ./node_modules/node-forge
+COPY --from=builder /app/node_modules/selfsigned ./node_modules/selfsigned
+COPY --from=builder /app/node_modules/@peculiar ./node_modules/@peculiar
+COPY --from=builder /app/node_modules/pkijs ./node_modules/pkijs
 # Ensure `next` is available at runtime in case tracing did not include it.
 COPY --from=builder /app/node_modules/next ./node_modules/next
 # sql.js loads dist/sql-wasm.wasm by path at runtime; tracing only follows JS imports,

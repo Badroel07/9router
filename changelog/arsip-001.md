@@ -4,7 +4,26 @@ Bagian dari sistem changelog terpecah per batas ukuran. Indeks lengkap: [`CHANGE
 
 ## Riwayat Perubahan
 
-### [2026-10-09] - Sinkronisasi Judul Dinamis Header & Presisi Tinggi Header dengan Sidebar (v1.0.4)
+### [2026-10-09] - Eliminasi Kerentanan node-forge via Refaktor ke selfsigned & Native Crypto (v1.0.5)
+- **Kategori**: Security | Refactor | Changed
+- **File & Baris Terkait**:
+  - `src/mitm/cert/rootCA.js:1-153` (refaktor total pembuatan Root CA dan leaf certificate menggunakan `selfsigned` modern dan `node:crypto` `X509Certificate`, menggantikan dependensi `node-forge`)
+  - `src/mitm/cert/generate.js:10-29` (penyelarasan fungsi `generateCert` dan `getCertForDomain` menjadi async)
+  - `src/mitm/server.js:38-72,298-408` (pembaruan `sniCallback` dengan deduplikasi memoization promise serta pembungkusan lifecycle start server ke dalam `startServer` async)
+  - `package.json:3,39` (penghapusan dependensi `node-forge` dan kenaikan versi ke 1.0.5)
+  - `cli/package.json:3,27-32` (penghapusan dependensi `node-forge` dan kenaikan versi CLI ke 1.0.5)
+  - `Dockerfile:61-64` (penggantian salinan runtime `node-forge` dengan pustaka `selfsigned`, `@peculiar`, dan `pkijs`)
+  - `tests/unit/mitm-root-ca.test.js:25-44` (pembaruan unit test Root CA ke async serta penambahan verifikasi end-to-end leaf certificate dan masa berlaku)
+- **Deskripsi Perubahan**:
+  - Menghapus sepenuhnya ketergantungan pada library pihak ketiga `node-forge` yang memiliki catatan kerentanan keamanan GHSA-86w9-cpqp-85rv (High Severity) tanpa patch resmi upstream.
+  - Mengganti logika pembuatan Root CA dan penandatanganan dinamis sertifikat SSL/TLS leaf proxy MITM dengan library modern `selfsigned` berbasis Web Crypto API standard serta pengecekan kedaluwarsa berbasis `crypto.X509Certificate` bawaan Node.js.
+  - Memperbarui mekanisme SNI di `server.js` agar mendukung handshake asinkron tanpa *race condition* melalui konkurensi antrean `pendingCerts`.
+  - Mengeliminasi laporan audit vulnerability saat paket CLI `67router` diinstal (`npm audit --omit=dev` kini menghasilkan 0 vulnerability).
+- **Status Selesai (Anti-Duplikasi AI)**:
+  - `node-forge` telah dibersihkan secara tuntas dari seluruh kode sumber, manifest dependensi, dan Dockerfile.
+  - Unit test MITM Root CA terverifikasi lulus 100%.
+
+
 - **Kategori**: Changed | Fixed | Chore
 - **File & Baris Terkait**:
   - `src/shared/components/Header.js:14-38,82,97-106` (penambahan pemetaan PAGE_META, helper getPageMeta, judul dinamis berdasarkan pathname, dan penerapan tinggi tetap h-[69px] menggantikan py-3.5)

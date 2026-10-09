@@ -36,39 +36,44 @@ const handlers = {
 // ── SSL / SNI ─────────────────────────────────────────────────
 
 const certCache = new Map();
+const pendingCerts = new Map();
 let rootCAPem;
 
 function sniCallback(servername, cb) {
   try {
     if (certCache.has(servername)) return cb(null, certCache.get(servername));
-    const certData = getCertForDomain(servername);
-    if (!certData) return cb(new Error(`Failed to generate cert for ${servername}`));
-    const ctx = require("tls").createSecureContext({
-      key: certData.key,
-      cert: `${certData.cert}\n${rootCAPem}`
+    if (pendingCerts.has(servername)) {
+      pendingCerts
+        .get(servername)
+        .then((ctx) => cb(null, ctx))
+        .catch((e) => cb(e));
+      return;
+    }
+
+    const certPromise = (async () => {
+      const certData = await getCertForDomain(servername);
+      if (!certData) throw new Error(`Failed to generate cert for ${servername}`);
+      const ctx = tls.createSecureContext({
+        key: certData.key,
+        cert: `${certData.cert}\n${rootCAPem}`
+      });
+      certCache.set(servername, ctx);
+      return ctx;
+    })().finally(() => {
+      pendingCerts.delete(servername);
     });
-    certCache.set(servername, ctx);
-    cb(null, ctx);
+
+    pendingCerts.set(servername, certPromise);
+    certPromise
+      .then((ctx) => cb(null, ctx))
+      .catch((e) => {
+        err(`SNI error for ${servername}: ${e.message}`);
+        cb(e);
+      });
   } catch (e) {
     err(`SNI error for ${servername}: ${e.message}`);
     cb(e);
   }
-}
-
-let sslOptions;
-try {
-  if (!fs.existsSync(path.join(MITM_DIR, "rootCA.key")) || !fs.existsSync(path.join(MITM_DIR, "rootCA.crt"))) {
-    log("Root CA missing, generating...");
-    generateCert();
-  }
-
-  const rootKey = fs.readFileSync(path.join(MITM_DIR, "rootCA.key"));
-  const rootCert = fs.readFileSync(path.join(MITM_DIR, "rootCA.crt"));
-  rootCAPem = rootCert.toString("utf8");
-  sslOptions = { key: rootKey, cert: rootCert, SNICallback: sniCallback };
-} catch (e) {
-  err(`Root CA not found: ${e.message}`);
-  process.exit(1);
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -290,9 +295,11 @@ async function passthroughHttps(req, res, bodyBuffer, headers, targetHost, onRes
   forwardReq.end();
 }
 
-// ── Request handler ───────────────────────────────────────────
+// ── Request handler & Server Lifecycle ─────────────────────────
 
-const server = https.createServer(sslOptions, async (req, res) => {
+let server;
+
+async function handleRequest(req, res) {
   try {
     if (req.url === "/_mitm_health") {
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -340,7 +347,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: { message: e.message, type: "mitm_error" } }));
   }
-});
+}
 
 // Kill only processes LISTENING on LOCAL_PORT (not outbound connections)
 function killPort(port) {
@@ -372,21 +379,42 @@ function killPort(port) {
   }
 }
 
-try {
-  killPort(LOCAL_PORT);
-} catch (e) {
-  err(`Cannot kill process on port ${LOCAL_PORT}: ${e.message}`);
-  process.exit(1);
+async function startServer() {
+  try {
+    if (!fs.existsSync(path.join(MITM_DIR, "rootCA.key")) || !fs.existsSync(path.join(MITM_DIR, "rootCA.crt"))) {
+      log("Root CA missing, generating...");
+      await generateCert();
+    }
+
+    const rootKey = fs.readFileSync(path.join(MITM_DIR, "rootCA.key"));
+    const rootCert = fs.readFileSync(path.join(MITM_DIR, "rootCA.crt"));
+    rootCAPem = rootCert.toString("utf8");
+    const sslOptions = { key: rootKey, cert: rootCert, SNICallback: sniCallback };
+
+    server = https.createServer(sslOptions, handleRequest);
+
+    try {
+      killPort(LOCAL_PORT);
+    } catch (e) {
+      err(`Cannot kill process on port ${LOCAL_PORT}: ${e.message}`);
+      process.exit(1);
+    }
+
+    server.listen(LOCAL_PORT, () => log(`🚀 Server ready on :${LOCAL_PORT}`));
+
+    server.on("error", (e) => {
+      if (e.code === "EADDRINUSE") err(`Port ${LOCAL_PORT} already in use`);
+      else if (e.code === "EACCES") err(`Permission denied for port ${LOCAL_PORT}`);
+      else err(e.message);
+      process.exit(1);
+    });
+  } catch (e) {
+    err(`Root CA initialization failed: ${e.message}`);
+    process.exit(1);
+  }
 }
 
-server.listen(LOCAL_PORT, () => log(`🚀 Server ready on :${LOCAL_PORT}`));
-
-server.on("error", (e) => {
-  if (e.code === "EADDRINUSE") err(`Port ${LOCAL_PORT} already in use`);
-  else if (e.code === "EACCES") err(`Permission denied for port ${LOCAL_PORT}`);
-  else err(e.message);
-  process.exit(1);
-});
+startServer();
 
 const { removeAllDNSEntriesSync } = require("./dns/dnsConfig");
 let isShuttingDown = false;

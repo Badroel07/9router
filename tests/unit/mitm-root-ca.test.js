@@ -23,13 +23,22 @@ function loadRootCAWithDataDir(dataDir) {
 }
 
 describe("MITM Root CA generation", () => {
-  it("creates Root CA files synchronously for direct server startup", () => {
+  it("creates Root CA files for direct server startup", async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "9router-mitm-ca-"));
-    const { generateRootCA } = loadRootCAWithDataDir(dataDir);
+    const { generateRootCA, loadRootCA, generateLeafCert, isCertExpired } = loadRootCAWithDataDir(dataDir);
 
-    generateRootCA();
+    const rootPaths = await generateRootCA();
 
     expect(fs.existsSync(path.join(dataDir, "mitm", "rootCA.key"))).toBe(true);
     expect(fs.existsSync(path.join(dataDir, "mitm", "rootCA.crt"))).toBe(true);
+    expect(isCertExpired(rootPaths.cert)).toBe(false);
+
+    const rootCA = loadRootCA();
+    expect(rootCA.key).toContain("BEGIN PRIVATE KEY");
+    expect(rootCA.cert).toContain("BEGIN CERTIFICATE");
+
+    const leafCert = await generateLeafCert("api.openai.com", rootCA);
+    expect(leafCert.key).toContain("BEGIN PRIVATE KEY");
+    expect(leafCert.cert).toContain("BEGIN CERTIFICATE");
   });
 });

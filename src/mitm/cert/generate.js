@@ -7,18 +7,18 @@ const { generateRootCA, loadRootCA, generateLeafCert } = require("./rootCA");
  * Generate Root CA certificate (one-time setup)
  * This replaces the old static wildcard cert approach
  */
-function generateCert() {
-  return generateRootCA();
+async function generateCert() {
+  return await generateRootCA();
 }
 
 /**
  * Get certificate for a specific domain (dynamic generation)
  * Used by SNICallback in server.js
  */
-function getCertForDomain(domain) {
+async function getCertForDomain(domain) {
   try {
     const rootCA = loadRootCA();
-    const leafCert = generateLeafCert(domain, rootCA);
+    const leafCert = await generateLeafCert(domain, rootCA);
     return {
       key: leafCert.key,
       cert: leafCert.cert
