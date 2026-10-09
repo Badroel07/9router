@@ -1,6 +1,6 @@
 {
   "name": "67router-app",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "67Router web dashboard",
   "private": true,
   "scripts": {
