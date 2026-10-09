@@ -88,6 +88,7 @@ graphify-out/*
 .codegraph/
 .PR/
 .next-analyze/*
+AGENTS.md
 
 # Kiro local workspace state
 .kiro/
