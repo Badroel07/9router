@@ -11,6 +11,32 @@ import DonateModal from "@/shared/components/DonateModal";
 import { useHeaderSearchStore } from "@/store/headerSearchStore";
 import { translate } from "@/i18n/runtime";
 
+const PAGE_META = {
+  "/dashboard/endpoint": { title: "Endpoint & Key", subtitle: "API endpoint configuration" },
+  "/dashboard": { title: "Endpoint & Key", subtitle: "API endpoint configuration" },
+  "/dashboard/providers": { title: "Providers", subtitle: "AI provider management" },
+  "/dashboard/combos": { title: "Combo & Vision", subtitle: "Model combo configuration" },
+  "/dashboard/usage": { title: "Usage", subtitle: "Request & token analytics" },
+  "/dashboard/quota": { title: "Quota Tracker", subtitle: "Provider quota monitoring" },
+  "/dashboard/token-saver": { title: "Agent Skills", subtitle: "Token optimization skills" },
+  "/dashboard/cli-tools": { title: "CLI Tools", subtitle: "Command-line utilities" },
+  "/dashboard/proxy-pools": { title: "Proxy Pools", subtitle: "Proxy pool management" },
+  "/dashboard/skills": { title: "Skills", subtitle: "Extension management" },
+  "/dashboard/console-log": { title: "Console Log", subtitle: "Live request log" },
+  "/dashboard/translator": { title: "Translator", subtitle: "Request translation layer" },
+  "/dashboard/profile": { title: "Settings", subtitle: "Application settings" },
+  "/dashboard/media-providers": { title: "Media Providers", subtitle: "Image, video & audio providers" },
+};
+
+function getPageMeta(pathname) {
+  // Exact match first, then longest prefix match
+  if (PAGE_META[pathname]) return PAGE_META[pathname];
+  const match = Object.keys(PAGE_META)
+    .filter((key) => pathname.startsWith(key))
+    .sort((a, b) => b.length - a.length)[0];
+  return match ? PAGE_META[match] : { title: "Dashboard", subtitle: "" };
+}
+
 export default function Header({ onMenuClick, showMenuButton = true }) {
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState("");
@@ -53,7 +79,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   };
 
   return (
-    <header className="shrink-0 flex items-center justify-between gap-3 px-6 lg:px-8 py-3.5 border-b border-[#222226] bg-[#09090A] text-[#F5F5F7] z-20">
+    <header className="shrink-0 flex items-center justify-between gap-3 px-6 lg:px-8 border-b border-[#222226] bg-[#09090A] text-[#F5F5F7] z-20 h-[69px]">
       {/* Mobile menu button */}
       <div className="flex items-center gap-3 lg:hidden shrink-0">
         {showMenuButton && (
@@ -70,11 +96,13 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold tracking-wider text-[#F5F5F7] uppercase font-mono">
-            ENDPOINT
+            {getPageMeta(pathname).title}
           </span>
-          <span className="hidden lg:inline text-xs text-[#68686E] font-mono">
-            — API endpoint configuration
-          </span>
+          {getPageMeta(pathname).subtitle && (
+            <span className="hidden lg:inline text-xs text-[#68686E] font-mono">
+              — {getPageMeta(pathname).subtitle}
+            </span>
+          )}
         </div>
       </div>
 

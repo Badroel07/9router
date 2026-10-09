@@ -1,6 +1,6 @@
 {
   "name": "67router",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "67Router CLI - Start and manage 67Router server",
   "bin": {
     "67router": "./cli.js",

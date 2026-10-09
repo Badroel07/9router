@@ -4,6 +4,21 @@ Bagian dari sistem changelog terpecah per batas ukuran. Indeks lengkap: [`CHANGE
 
 ## Riwayat Perubahan
 
+### [2026-10-09] - Sinkronisasi Judul Dinamis Header & Presisi Tinggi Header dengan Sidebar (v1.0.4)
+- **Kategori**: Changed | Fixed | Chore
+- **File & Baris Terkait**:
+  - `src/shared/components/Header.js:14-38,82,97-106` (penambahan pemetaan PAGE_META, helper getPageMeta, judul dinamis berdasarkan pathname, dan penerapan tinggi tetap h-[69px] menggantikan py-3.5)
+  - `src/shared/components/Sidebar.js:70-96` (penyelarasan tinggi brand container sidebar persis h-[69px] serta pemindahan update banner ke luar container agar border bawah sejajar piksel demi piksel)
+  - `package.json:3` (pembaruan versi aplikasi ke 1.0.4)
+  - `cli/package.json:3` (pembaruan versi CLI ke 1.0.4)
+- **Deskripsi Perubahan**:
+  - Mengubah judul header yang sebelumnya statis "ENDPOINT" menjadi dinamis mengikuti halaman aktif menggunakan pemetaan `PAGE_META` dan `usePathname()`.
+  - Mengunci tinggi `<header>` dan container brand `Sidebar` menjadi tepat `h-[69px]` (dan `flex items-center`) sehingga border bawah antara sidebar dan header sejajar sempurna (0px offset di y=68px) pada semua resolusi dan browser tanpa terpengaruh perbedaan konten padding.
+- **Status Selesai (Anti-Duplikasi AI)**:
+  - Judul header sudah dinamis sesuai route `/dashboard/*`.
+  - Tinggi header dan sidebar brand sudah terkunci presisi di 69px dengan baseline/center delta = 0px.
+
+
 ### [2026-10-09] - Penambahan Fitur @antislop-code pada Menu Agent Skills & Pembaruan Versi ke 1.0.3
 - **Kategori**: Added | Changed
 - **File & Baris Terkait**:

@@ -67,8 +67,8 @@ export default function Sidebar({ onClose }) {
 
   return (
     <aside className="flex w-68 flex-col border-r border-[#222226] bg-[#09090A] text-[#F5F5F7] min-h-full select-none">
-      {/* Brand Header */}
-      <div className="px-6 py-6 border-b border-[#222226]">
+      {/* Brand Header — h-[69px] matches the main header's rendered height exactly */}
+      <div className="px-6 border-b border-[#222226] flex items-center shrink-0 h-[69px]">
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <img
             src="/logo.png"
@@ -79,21 +79,21 @@ export default function Sidebar({ onClose }) {
             67Router
           </span>
         </Link>
-
-        {updateInfo && (
-          <div className="mt-4 p-2.5 border border-[#2E2E33] bg-[#141416] flex flex-col gap-1.5">
-            <span className="text-[11px] text-[#E5C378]">
-              ↑ Update Available: v{updateInfo.latestVersion}
-            </span>
-            <button
-              onClick={() => copy(INSTALL_CMD)}
-              className="text-left text-[10px] text-[#A1A1A6] hover:text-[#F5F5F7] truncate cursor-pointer font-mono"
-            >
-              {copied ? "✓ Copied command" : INSTALL_CMD}
-            </button>
-          </div>
-        )}
       </div>
+
+      {updateInfo && (
+        <div className="mx-6 my-3 p-2.5 border border-[#2E2E33] bg-[#141416] flex flex-col gap-1.5">
+          <span className="text-[11px] text-[#E5C378]">
+            ↑ Update Available: v{updateInfo.latestVersion}
+          </span>
+          <button
+            onClick={() => copy(INSTALL_CMD)}
+            className="text-left text-[10px] text-[#A1A1A6] hover:text-[#F5F5F7] truncate cursor-pointer font-mono"
+          >
+            {copied ? "✓ Copied command" : INSTALL_CMD}
+          </button>
+        </div>
+      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 px-4 py-6 space-y-7 overflow-y-auto custom-scrollbar">
