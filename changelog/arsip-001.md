@@ -4,7 +4,19 @@ Bagian dari sistem changelog terpecah per batas ukuran. Indeks lengkap: [`CHANGE
 
 ## Riwayat Perubahan
 
-### [2026-10-09] - Eliminasi Kerentanan node-forge via Refaktor ke selfsigned & Native Crypto (v1.0.5)
+### [2026-10-09] - Penyesuaian Dokumentasi README.md & Perbedaan Fitur 67Router dari Upstream 9Router
+- **Kategori**: Documentation | Changed
+- **File & Baris Terkait**:
+  - `README.md:1-356` (rebranding menyeluruh ke 67Router, penambahan matriks perbandingan fitur dan keamanan vs upstream 9router, penjelasan fitur `@antislop-code`, arsitektur zero-vulnerability, sinkronisasi OpenCode, dan panduan instalasi npm 67router)
+  - `i18n/README.id-ID.md:1-224` (penyelarasan dokumentasi Bahasa Indonesia mencakup komparasi fitur, zero-vulnerability MITM, Agent Skills, dan keunggulan 67Router)
+- **Deskripsi Perubahan**:
+  - Menyesuaikan `README.md` utama agar secara eksplisit mencerminkan identitas, fitur unggulan, dan pembeda teknis 67Router dibandingkan 9Router original upstream (`decolua/9router`).
+  - Menyertakan matriks perbandingan komprehensif: zero-vulnerability security (`selfsigned` & native crypto menggantikan `node-forge`), mesin MITM async SNI queue, integrasi Agent Skills `@antislop-code`, automated OpenCode full model discovery, perombakan desain Monolithic Architectural Luxury (Momo Trust Sans), presisi header/sidebar `h-[69px]`, serta paket CLI npm `67router` dengan alias `9router`.
+  - Memperbarui panduan instalasi CLI, quick start, dan tautan repositori ke `Badroel07/9router`.
+- **Status Selesai (Anti-Duplikasi AI)**:
+  - `README.md` dan `i18n/README.id-ID.md` telah disesuaikan secara tuntas dan terdokumentasi.
+
+
 - **Kategori**: Security | Refactor | Changed
 - **File & Baris Terkait**:
   - `src/mitm/cert/rootCA.js:1-153` (refaktor total pembuatan Root CA dan leaf certificate menggunakan `selfsigned` modern dan `node:crypto` `X509Certificate`, menggantikan dependensi `node-forge`)
