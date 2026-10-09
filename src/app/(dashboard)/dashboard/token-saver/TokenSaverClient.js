@@ -45,6 +45,7 @@ export default function TokenSaverClient() {
   const [cavemanLevel, setCavemanLevel] = useState("full");
   const [ponytailEnabled, setPonytailEnabled] = useState(false);
   const [ponytailLevel, setPonytailLevel] = useState("full");
+  const [antislopCodeEnabled, setAntislopCodeEnabled] = useState(false);
   const [pxpipeEnabled, setPxpipeEnabled] = useState(false);
   const [pxpipeMinChars, setPxpipeMinChars] = useState(25000);
   const [pxpipeStatus, setPxpipeStatus] = useState({
@@ -354,6 +355,11 @@ export default function TokenSaverClient() {
     patchSetting({ ponytailLevel: level });
   };
 
+  const handleAntislopCodeEnabled = (value) => {
+    setAntislopCodeEnabled(value);
+    patchSetting({ antislopCodeEnabled: value });
+  };
+
   const refreshPxpipeStatus = useCallback(async () => {
     setPxpipeStatus((s) => ({ ...s, loading: true }));
     try {
@@ -430,6 +436,7 @@ export default function TokenSaverClient() {
           setCavemanLevel(data.cavemanLevel || "full");
           setPonytailEnabled(!!data.ponytailEnabled);
           setPonytailLevel(data.ponytailLevel || "full");
+          setAntislopCodeEnabled(!!data.antislopCodeEnabled);
           setPxpipeEnabled(!!data.pxpipeEnabled);
           if (typeof data.pxpipeMinChars === "number") setPxpipeMinChars(data.pxpipeMinChars);
           refreshHeadroomStatus();
@@ -479,9 +486,9 @@ export default function TokenSaverClient() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">
-              bolt
+              smart_toy
             </span>
-            Token Saver
+            Agent Skills
           </h2>
         </div>
         <div className="flex items-center justify-between pt-2 pb-4 border-b border-border gap-4">
@@ -738,6 +745,36 @@ export default function TokenSaverClient() {
             <Toggle
               checked={ponytailEnabled}
               onChange={() => handlePonytailEnabled(!ponytailEnabled)}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-between pt-4 mt-4 border-t border-border gap-4 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium">
+                Code comment hygiene{" "}
+                <span className="text-xs font-mono font-semibold text-primary">
+                  (@antislop-code)
+                </span>
+              </p>
+              <a
+                href="https://github.com/miqdadbadjuber/anti-slop"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-normal text-primary underline hover:opacity-80 inline-flex items-center gap-0.5"
+              >
+                Powered by miqdadbadjuber/anti-slop
+                <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+              </a>
+            </div>
+            <p className="text-sm text-text-muted mt-0.5">
+              Filter generic AI-slop comments, keep valuable ones, never touch code logic
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Toggle
+              checked={antislopCodeEnabled}
+              onChange={() => handleAntislopCodeEnabled(!antislopCodeEnabled)}
             />
           </div>
         </div>
