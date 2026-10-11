@@ -4,6 +4,20 @@ Bagian dari sistem changelog terpecah per batas ukuran. Indeks lengkap: [`CHANGE
 
 ## Riwayat Perubahan
 
+### [2026-10-11] - Perbaikan Stabilitas System Tray Windows & Crash Recovery Background Mode (v1.0.6)
+- **Kategori**: Bug Fix | Windows | Tray
+- **File & Baris Terkait**:
+  - `cli/src/cli/tray/tray.ps1:7-65,103-180` (mengeliminasi deadlock UI thread akibat `[Console]::In.Peek()` blocking dengan mengimplementasikan asynchronous background C# `StdinReader` thread-safe `ConcurrentQueue`, menambahkan proteksi batas 63 karakter pada Tooltip NotifyIcon, fallback aman pembacaan icon, dan exception handling pada `Write-Event`)
+  - `cli/src/cli/tray/trayWin.js:1-95` (penambahan error guard pada IPC stdin, pelacakan state menu & tooltip, serta mekanisme auto-respawn proses PowerShell apabila di-kill secara paksa oleh Windows Explorer atau sistem)
+  - `cli/cli.js:660-716,890-896` (mengaktifkan `attachServerEvents` dan `tryRestart` secara universal sebelum percabangan `trayMode`, sehingga server Next.js di latar belakang terlindungi pemulihan otomatis dari crash)
+  - `package.json:3`, `cli/package.json:3`, `cli/app/package.json:3` (kenaikan versi patch ke v1.0.6)
+- **Deskripsi Perubahan**:
+  - Memperbaiki masalah aplikasi yang tiba-tiba tertutup sendiri saat diminimalkan ke tray pada sistem operasi Windows.
+  - Sebelumnya, `[Console]::In.Peek()` pada anonymous pipe di PowerShell membekukan UI thread Windows Forms ketika input kosong, menyebabkan Windows Explorer menganggap jendela hung dan membuang ikon notifikasi.
+  - Selain itu, mode `--tray` sebelumnya memiliki bug arsitektur di mana `attachServerEvents()` tidak pernah dipanggil karena early return, sehingga crash minor pada server anak langsung mematikan aplikasi tanpa restart otomatis.
+- **Status Selesai (Anti-Duplikasi AI)**:
+  - Seluruh mekanisme tray Windows dan lifecycle server telah diperbaiki dan diuji coba dengan sukses.
+
 ### [2026-10-09] - Penyesuaian Dokumentasi README.md & Perbedaan Fitur 67Router dari Upstream 9Router
 - **Kategori**: Documentation | Changed
 - **File & Baris Terkait**:

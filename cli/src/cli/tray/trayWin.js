@@ -2,27 +2,21 @@ const { spawn } = require("child_process");
 const path = require("path");
 const readline = require("readline");
 
-// PowerShell-based tray for Windows (AV-safe, zero binary deps)
-
 let psProcess = null;
 let clickHandler = null;
+let activeOptions = null;
+let isKilled = false;
 
-/**
- * Send JSON command to PowerShell tray process via stdin
- */
 function sendCommand(cmd) {
-  if (psProcess && psProcess.stdin.writable) {
-    psProcess.stdin.write(`${JSON.stringify(cmd)}\n`, "utf8");
+  if (psProcess && psProcess.stdin && psProcess.stdin.writable) {
+    try {
+      psProcess.stdin.write(`${JSON.stringify(cmd)}\n`, "utf8");
+    } catch (e) {}
   }
 }
 
-/**
- * Initialize Windows tray using PowerShell NotifyIcon
- * @param {Object} options - { iconPath, tooltip, items, onClick }
- *   items: [{ title, enabled }]
- * @returns {Object|null} controller with sendAction/kill
- */
-function initWinTray(options) {
+function spawnTray(options) {
+  if (isKilled) return null;
   const { iconPath, tooltip, items, onClick } = options;
   clickHandler = onClick;
 
@@ -60,19 +54,48 @@ function initWinTray(options) {
   psProcess.on("error", () => {});
   psProcess.stderr.on("data", () => {});
 
-  // Send initial menu items
+  psProcess.on("close", () => {
+    psProcess = null;
+    if (!isKilled && activeOptions) {
+      setTimeout(() => {
+        if (!isKilled && activeOptions) {
+          spawnTray(activeOptions);
+        }
+      }, 1500);
+    }
+  });
+
   items.forEach((item, index) => {
     sendCommand({ action: "add-item", index, title: item.title, enabled: item.enabled });
   });
 
+  return psProcess;
+}
+
+function initWinTray(options) {
+  isKilled = false;
+  activeOptions = {
+    ...options,
+    items: options.items.map((it) => ({ ...it }))
+  };
+
+  const proc = spawnTray(activeOptions);
+  if (!proc) return null;
+
   return {
     updateItem(index, title, enabled) {
+      if (activeOptions && activeOptions.items && activeOptions.items[index]) {
+        activeOptions.items[index] = { title, enabled };
+      }
       sendCommand({ action: "update-item", index, title, enabled });
     },
     setTooltip(text) {
+      if (activeOptions) activeOptions.tooltip = text;
       sendCommand({ action: "set-tooltip", text });
     },
     kill() {
+      isKilled = true;
+      activeOptions = null;
       try {
         sendCommand({ action: "kill" });
       } catch (e) {}

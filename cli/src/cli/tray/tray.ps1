@@ -6,6 +6,9 @@ $ErrorActionPreference = "Stop"
 
 Add-Type @"
 using System;
+using System.IO;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Runtime.InteropServices;
 
 public static class WinDpiAwareness {
@@ -23,6 +26,45 @@ public static class WinDpiAwareness {
 
   [DllImport("user32.dll")]
   public static extern bool SetProcessDPIAware();
+}
+
+public static class StdinReader {
+  private static readonly ConcurrentQueue<string> _queue = new ConcurrentQueue<string>();
+  private static Thread _thread;
+  private static volatile bool _running = false;
+
+  public static void Start() {
+    if (_running) return;
+    _running = true;
+    _thread = new Thread(Run) {
+      IsBackground = true,
+      Name = "StdinReaderThread"
+    };
+    _thread.Start();
+  }
+
+  public static void Stop() {
+    _running = false;
+  }
+
+  private static void Run() {
+    try {
+      string line;
+      while (_running && (line = Console.ReadLine()) != null) {
+        if (!string.IsNullOrWhiteSpace(line)) {
+          _queue.Enqueue(line);
+        }
+      }
+    } catch { }
+  }
+
+  public static string TryReadLine() {
+    string line;
+    if (_queue.TryDequeue(out line)) {
+      return line;
+    }
+    return null;
+  }
 }
 "@
 
@@ -61,8 +103,17 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [System.Windows.Forms.Application]::EnableVisualStyles()
 [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 
+# Safe tooltip truncation (Win32 NotifyIcon.Text max 63 characters)
+if ($Tooltip -and $Tooltip.Length -gt 63) {
+  $Tooltip = $Tooltip.Substring(0, 63)
+}
+
 $script:notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-$script:notifyIcon.Icon = New-Object System.Drawing.Icon($IconPath)
+try {
+  $script:notifyIcon.Icon = New-Object System.Drawing.Icon($IconPath)
+} catch {
+  $script:notifyIcon.Icon = [System.Drawing.SystemIcons]::Application
+}
 $script:notifyIcon.Text = $Tooltip
 $script:notifyIcon.Visible = $true
 
@@ -71,9 +122,11 @@ $script:notifyIcon.ContextMenuStrip = $script:menu
 $script:items = @()
 
 function Write-Event($obj) {
-  $json = $obj | ConvertTo-Json -Compress
-  [Console]::Out.WriteLine($json)
-  [Console]::Out.Flush()
+  try {
+    $json = $obj | ConvertTo-Json -Compress
+    [Console]::Out.WriteLine($json)
+    [Console]::Out.Flush()
+  } catch {}
 }
 
 function Add-MenuItem($index, $title, $enabled) {
@@ -94,19 +147,19 @@ function Update-MenuItem($index, $title, $enabled) {
 }
 
 function Set-Tooltip($text) {
-  # NotifyIcon.Text max 63 chars
-  if ($text.Length -gt 63) { $text = $text.Substring(0, 63) }
+  if ($text -and $text.Length -gt 63) { $text = $text.Substring(0, 63) }
   $script:notifyIcon.Text = $text
 }
 
-# Background reader thread polls stdin via timer on UI thread
+# Start non-blocking background stdin reader thread
+[StdinReader]::Start()
+
+# UI thread timer polls thread-safe queue without blocking message loop
 $script:timer = New-Object System.Windows.Forms.Timer
 $script:timer.Interval = 100
 $script:timer.Add_Tick({
   try {
-    while ([Console]::In.Peek() -ne -1) {
-      $line = [Console]::In.ReadLine()
-      if ([string]::IsNullOrWhiteSpace($line)) { continue }
+    while ($null -ne ($line = [StdinReader]::TryReadLine())) {
       $cmd = $line | ConvertFrom-Json
       switch ($cmd.action) {
         "add-item"    { Add-MenuItem $cmd.index $cmd.title $cmd.enabled }
@@ -114,6 +167,7 @@ $script:timer.Add_Tick({
         "set-tooltip" { Set-Tooltip $cmd.text }
         "ready"       { Write-Event @{ type = "ready" } }
         "kill"        {
+          [StdinReader]::Stop()
           $script:notifyIcon.Visible = $false
           $script:notifyIcon.Dispose()
           [System.Windows.Forms.Application]::Exit()
